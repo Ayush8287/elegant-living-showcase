@@ -22,15 +22,6 @@ const ProductCard: React.FC<{ product: ProductProps }> = ({ product }) => {
           alt={product.name}
           className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500"
         />
-        <div className="absolute top-2 right-2">
-          <Button 
-            variant="secondary" 
-            size="icon" 
-            className="rounded-full opacity-80 hover:opacity-100"
-          >
-            <Heart className="h-4 w-4" />
-          </Button>
-        </div>
       </div>
       
       <CardContent className="pt-4">
@@ -42,12 +33,6 @@ const ProductCard: React.FC<{ product: ProductProps }> = ({ product }) => {
         </p>
       </CardContent>
       
-      <CardFooter className="pt-0">
-        <Button className="w-full gap-2">
-          <ShoppingCart className="h-4 w-4" />
-          Add to Cart
-        </Button>
-      </CardFooter>
     </Card>
   );
 };

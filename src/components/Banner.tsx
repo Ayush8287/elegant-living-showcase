@@ -48,7 +48,6 @@ const Banner = () => {
           <div className="container mx-auto h-full flex flex-col items-center justify-center text-center px-4">
             <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">{image.title}</h2>
             <p className="text-xl text-white mb-8">{image.subtitle}</p>
-            <Button size="lg" className="bg-primary hover:bg-primary/90">Shop Now</Button>
           </div>
         </div>
       ))}
