@@ -1,76 +1,121 @@
+import { fetcher } from "@/utils/fetcher";
+import React from "react";
+import useSWR from "swr";
 
-import React from 'react';
+interface Subcategory {
+  id: number;
+  label: string;
+  updatedAt: string;
+  createdAt: string;
+}
 
-const categories = [
-  {
-    name: "Living Room",
-    subcategories: ["Sofas", "Coffee Tables", "TV Stands", "Bookcases"]
-  },
-  {
-    name: "Bedroom", 
-    subcategories: ["Beds", "Mattresses", "Nightstands", "Dressers"]
-  },
-  {
-    name: "Dining", 
-    subcategories: ["Dining Tables", "Dining Chairs", "Buffets", "Bar Stools"]
-  },
-  {
-    name: "Office", 
-    subcategories: ["Desks", "Office Chairs", "Filing Cabinets", "Bookshelves"]
-  },
-  {
-    name: "Outdoor", 
-    subcategories: ["Patio Sets", "Garden Furniture", "Hammocks", "Umbrellas"]
-  }
-];
+interface Category {
+  id: number;
+  label: string;
+  subcategories: Subcategory[];
+  updatedAt: string;
+  createdAt: string;
+}
 
-const CategorySidebar = () => {
-  const [openCategory, setOpenCategory] = React.useState<string | null>(null);
-  
-  const toggleCategory = (categoryName: string) => {
-    if (openCategory === categoryName) {
+interface PaginatedResponse {
+  docs: Category[];
+  hasNextPage: boolean;
+  hasPrevPage: boolean;
+  limit: number;
+  nextPage: number | null;
+  page: number;
+  pagingCounter: number;
+  prevPage: number | null;
+  totalDocs: number;
+  totalPages: number;
+}
+
+const CategorySidebar: React.FC = () => {
+  const { data, error, isLoading } = useSWR<PaginatedResponse>(
+    "/api/categories?depth=1",
+    fetcher
+  );
+  const [openCategory, setOpenCategory] = React.useState<number | null>(null);
+
+  const toggleCategory = (categoryId: number) => {
+    if (openCategory === categoryId) {
       setOpenCategory(null);
     } else {
-      setOpenCategory(categoryName);
+      setOpenCategory(categoryId);
     }
   };
-  
+
+  if (isLoading) {
+    return (
+      <div className="w-full bg-white p-4 rounded-lg shadow-sm">
+        <h2 className="text-lg font-semibold mb-4 pb-2 border-b">Categories</h2>
+        <div className="flex justify-center py-8">
+          <div className="animate-pulse text-gray-400">
+            Loading categories...
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="w-full bg-white p-4 rounded-lg shadow-sm">
+        <h2 className="text-lg font-semibold mb-4 pb-2 border-b">Categories</h2>
+        <div className="text-red-500 py-2">Failed to load categories</div>
+      </div>
+    );
+  }
+
+  if (!data || !data.docs || data.docs.length === 0) {
+    return (
+      <div className="w-full bg-white p-4 rounded-lg shadow-sm">
+        <h2 className="text-lg font-semibold mb-4 pb-2 border-b">Categories</h2>
+        <div className="py-2 text-gray-500">No categories available</div>
+      </div>
+    );
+  }
+
   return (
     <div className="w-full bg-white p-4 rounded-lg shadow-sm">
       <h2 className="text-lg font-semibold mb-4 pb-2 border-b">Categories</h2>
       <ul className="space-y-2">
-        {categories.map((category) => (
-          <li key={category.name} className="border-b pb-1">
-            <button 
-              onClick={() => toggleCategory(category.name)}
+        {data.docs.map((category) => (
+          <li key={category.id} className="border-b pb-1 last:border-b-0">
+            <button
+              onClick={() => toggleCategory(category.id)}
               className="flex justify-between items-center w-full py-2 text-left hover:text-primary transition-colors"
+              aria-expanded={openCategory === category.id}
             >
-              <span>{category.name}</span>
-              <span>{openCategory === category.name ? '−' : '+'}</span>
+              <span>{category.label}</span>
+              <span className="text-lg">
+                {openCategory === category.id ? "−" : "+"}
+              </span>
             </button>
-            
-            {openCategory === category.name && (
-              <ul className="ml-4 space-y-1 my-1">
-                {category.subcategories.map((subcat) => (
-                  <li key={subcat}>
-                    <a 
-                      href="#" 
-                      className="block py-1 text-sm text-muted-foreground hover:text-primary transition-colors"
-                    >
-                      {subcat}
-                    </a>
+
+            {openCategory === category.id && (
+              <ul className="ml-4 space-y-1 my-1 pb-2">
+                {category.subcategories && category.subcategories.length > 0 ? (
+                  category.subcategories.map((subcat) => (
+                    <li key={subcat.id}>
+                      <a
+                        href={`/category/${category.id}/subcategory/${subcat.id}`}
+                        className="block py-1 text-sm text-muted-foreground hover:text-primary transition-colors"
+                      >
+                        {subcat.label}
+                      </a>
+                    </li>
+                  ))
+                ) : (
+                  <li className="text-sm text-gray-400 py-1">
+                    No subcategories
                   </li>
-                ))}
+                )}
               </ul>
             )}
           </li>
         ))}
       </ul>
-      
-      <div className="mt-8 p-4 bg-secondary rounded-lg">
-        <h3 className="font-semibold mb-2">Special Offer</h3>
-        <p className="text-sm">Get 10% off your first order with code: <span className="font-semibold">WELCOME10</span></p>
-      </div>
     </div>
   );
 };
